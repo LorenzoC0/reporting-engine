@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="assets_backend" name="pdf_generator assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/pdf_generator/static/src/scss/modal.scss" type="text/scss"/>
+            <script type="text/javascript" src="/pdf_generator/static/src/js/widget.js"></script>
+        </xpath>
+    </template>
+</odoo>

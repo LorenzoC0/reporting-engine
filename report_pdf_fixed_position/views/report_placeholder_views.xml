@@ -8,7 +8,7 @@
                 <form>
                     <sheet>
                         <field name="report_id" invisible="1" />
-                        
+
                         <h1>
                             <field name="name"
                                 readonly="0"
@@ -34,7 +34,7 @@
                             </group>
                             <group string="Appearance">
                                 <field name="text_size" options='{"type": "number", "step": 2}'/>
-                                <field name="text_color" widget="colorpicker" />
+                                <field name="text_color" widget="color_picker" />
                                 <field name="text_font_id" options='{"no_open": True, "no_create": True}' />
                             </group>
                         </group>

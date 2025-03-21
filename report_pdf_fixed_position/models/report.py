@@ -10,36 +10,51 @@ import base64
 
 _logger = getLogger(__name__)
 
+TEXT_COLOR_LIST = [
+    [1.000, 1.000, 1.000],
+    [0.592, 0.106, 0.051],
+    [0.561, 0.278, 0.043],
+    [0.541, 0.439, 0.024],
+    [0.059, 0.369, 0.525],
+    [0.404, 0.227, 0.325],
+    [0.478, 0.075, 0.078],
+    [0.141, 0.412, 0.475],
+    [0.224, 0.267, 0.373],
+    [0.671, 0.063, 0.294],
+    [0.145, 0.612, 0.404],
+    [0.380, 0.231, 0.498],
+]
+
 class PDFGenReport(models.Model):
     _name = "pdfgen.report"
     _description = "Report Generator"
-    
+
     name = fields.Char(
         string="Name",
         required=True
     )
-    
+
     code = fields.Char(
         string="Identified by",
         required=True
     )
-    
+
     template_pdf = fields.Binary(
         string="Template",
         required=False
     )
-    
+
     file_name = fields.Char(
         string="File Name",
         required=False
     )
-    
+
     model_id = fields.Many2one(
         comodel_name="ir.model",
         string="Model",
         required=False
     )
-       
+
     placeholder_ids = fields.One2many(
         comodel_name="pdfgen.report.placeholder",
         inverse_name="report_id",
@@ -50,35 +65,35 @@ class PDFGenReport(models.Model):
     ir_action_server_count = fields.Integer(
         string="Action server count",
         compute="_compute_ir_action_server_count"
-    )   
+    )
 
     @api.model
     def create(self, values):
         res = super(PDFGenReport, self).create(values)
         res._validate_template_extension(values.get('file_name'))
         res._validate_name_and_identificative()
-        
+
         return res
-    
+
     def write(self, values):
         res = super(PDFGenReport, self).write(values)
-        
+
         for record in self:
             record._validate_template_extension(record.file_name)
             record._validate_name_and_identificative()
-            
+
         return res
-    
+
     def _validate_template_extension(self, filename):
         if filename and filename.split('.')[-1].lower() != 'pdf':
             raise ValidationError(_("Only PDF extensions allowed"))
-        
+
     def _validate_name_and_identificative(self):
         if self.env['pdfgen.report'].search([('name', '=', self.name), ('id', '!=', self.id)]):
             raise ValidationError(_("A report with this name already exists, report's name need to be unique."))
         if self.env['pdfgen.report'].search([('code', '=', self.code), ('id', '!=', self.id)]):
             raise ValidationError(_("A report with this identificator already exists, report's identificator need to be unique."))
-    
+
     def copy(self, default={}):
         default.update({
             "name": "%s (Copy)" % (self.name),
@@ -96,7 +111,7 @@ class PDFGenReport(models.Model):
                     'file': file['content'],
                     'download_btn': self.env['pdfgen.output.file'].download_action(file['name'], file['content'])
                 }))
-            
+
         return {
             'name': wizard_name,
             'type': 'ir.actions.act_window',
@@ -110,11 +125,11 @@ class PDFGenReport(models.Model):
             },
             'flags': {'initial_mode': 'view'}
         }
-    
+
     @api.model
     def get_report(self, code):
         return self.env['pdfgen.report'].search([('code', '=', code)], limit=1)
-    
+
     def generate_report(self, res_id):
         try:
             template = io.BytesIO(base64.b64decode(self.template_pdf))
@@ -122,7 +137,7 @@ class PDFGenReport(models.Model):
             pdf_writer = PyPDF2.PdfFileWriter()
         except:
             raise ValidationError(_('Could not load provided template, maybe is broken'))
-        
+
         try:
             record = self.env[self.model_id.model].browse(res_id)
         except:
@@ -132,12 +147,12 @@ class PDFGenReport(models.Model):
             for page in range(existing_pdf.numPages):
                 packet = io.BytesIO()
                 can = canvas.Canvas(packet, pagesize=letter)
-                
+
                 placeholders = self.env['pdfgen.report.placeholder'].search([('id','in',self.placeholder_ids.ids), ('page','=',page+1)])
 
                 for placeholder in placeholders:
 
-                    rgb = [int(i) for i in placeholder.text_color.replace("rgba(", "").replace(")", "").split(",")]
+                    rgb = TEXT_COLOR_LIST[int(placeholder.text_color)]
                     placeholder.text_font_id.register_font()
                     can.setFont(placeholder.text_font_id.name, placeholder.text_size)
                     can.setFillColorRGB(*rgb)
@@ -148,7 +163,7 @@ class PDFGenReport(models.Model):
                         raise ValidationError(_(
                             "An error has occurred while processing %s (ID: %i)'s field on report %s.\n\r%s" % (placeholder.name, placeholder.id, self.name, str(ex))
                         ))
-                    
+
                     if placeholder_value:
                         if placeholder.text_alignment == 'left':
                             can.drawString(placeholder.position_x, placeholder.position_y, str(placeholder_value))
@@ -159,15 +174,15 @@ class PDFGenReport(models.Model):
 
                 can.save()
                 packet.seek(0)
-                
+
                 new_pdf = PyPDF2.PdfFileReader(packet)
                 new_page = existing_pdf.getPage(page)
 
                 if placeholders:
                     new_page.mergePage(new_pdf.getPage(0))
-                
+
                 pdf_writer.addPage(new_page)
-                
+
             output = io.BytesIO()
             pdf_writer.write(output)
             output.seek(0)
@@ -215,7 +230,7 @@ class PDFGenReport(models.Model):
             'target': 'new',
             'context': self._default_action_server_values()
         }
-        
+
     def _default_action_server_values(self):
         default_code = """
 pdfgen = env['pdfgen.report'].sudo()

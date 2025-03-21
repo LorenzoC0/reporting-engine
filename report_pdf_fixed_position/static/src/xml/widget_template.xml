@@ -1,0 +1,38 @@
+<!-- XML file: static/src/xml/pdf_preview_widget.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="report_pdf_fixed_position.PdfPreviewWidget" owl="1">
+        <div class="o_field_pdf_preview" t-att-class="props.className" t-att-style="props.style">
+            <button class="btn btn-sm btn-primary" t-on-click="handlePreviewClick">
+                <i class="fa fa-file-pdf-o me-1"/>Preview
+            </button>
+
+            <t t-if="state.isModalVisible">
+                <div class="pdf-preview-modal modal" role="dialog" style="display: block;">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">PDF Preview</h5>
+                                <button type="button" class="btn-close" t-on-click="closeModal" aria-label="Close"/>
+                            </div>
+                            <div class="modal-body p-0" style="height: 80vh;">
+                                <iframe
+                                    t-att-src="state.pdfUrl"
+                                    type="application/pdf"
+                                    frameBorder="0"
+                                    scrolling="auto"
+                                    height="100%"
+                                    width="100%"
+                                />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" t-on-click="closeModal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop show"/>
+            </t>
+        </div>
+    </t>
+</templates>

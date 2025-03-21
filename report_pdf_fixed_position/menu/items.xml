@@ -4,14 +4,14 @@
         <menuitem id="menu_pdfgen_report"
             parent="base.next_id_6"
             action="pdfgen_report_action"
-            sequence="1" 
-            groups="pdf_generator.group_pdfgen_user"
+            sequence="1"
+            groups="report_pdf_fixed_position.group_pdfgen_user"
         />
         <menuitem id="menu_pdfgen_report_font"
             parent="base.next_id_6"
             action="pdfgen_report_font_action"
-            sequence="2" 
-            groups="pdf_generator.group_pdfgen_user"
+            sequence="2"
+            groups="report_pdf_fixed_position.group_pdfgen_user"
         />
     </data>
 </odoo>
